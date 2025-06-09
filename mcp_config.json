@@ -1,0 +1,14 @@
+{
+  "mcp_version": "0.1",
+  "models": [
+    {
+      "id": "file-agent-gpt4o",
+      "title": "File Agent",
+      "description": "Un agente AI in grado di leggere, scrivere ed eseguire ricerche sui file in un'area di lavoro locale. Basato su GPT-4o.",
+      "context_length": 8192,
+      "endpoints": [
+        "/v1/chat/completions"
+      ]
+    }
+  ]
+}
