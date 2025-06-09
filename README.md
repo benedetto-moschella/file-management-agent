@@ -38,7 +38,7 @@ This project implements an advanced **tool-using AI agent**, built with **LangCh
 
 1.  **Clone the Repository**
     ```bash
-    git clone https://github.com/benedetto-moschella/file-management-agent
+    git clone https://github.com/benedetto-moschella/file-management-agent.git
     cd project-root
     ```
 
