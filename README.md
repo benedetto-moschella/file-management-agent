@@ -33,6 +33,7 @@ This project implements an advanced **tool-using AI agent**, built with **LangCh
 ├── mcp_config.json
 ├── requirements.txt
 └── README.md
+```
 
 ## 🚀 Setup and Installation
 
@@ -75,7 +76,7 @@ The agent requires an API key for OpenAI models.
 To chat with the agent directly in your terminal (make sure your conda environment is active):
 ```bash
 python chat_interface/cli.py
-
+```
 **Example On-Topic Query:**
 > `First, create a file named ingredients.txt and write "Guanciale, Eggs, Pecorino, Pepper" in it. Then, create a second file named recipe.txt and write "1. Fry the guanciale. 2. Combine eggs and cheese." inside it. Finally, tell me what to do after frying the guanciale.`
 
@@ -87,7 +88,7 @@ To run the agent as a server for clients like Cursor:
 
 ```bash
 uvicorn server.mcp_server:app --reload
-
+```
 The server will be available at http://localhost:8000.
 
 ### 3. Running Tests
@@ -95,3 +96,4 @@ To run the entire test suite:
 
 ```bash
 pytest
+```
