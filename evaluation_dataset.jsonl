@@ -1,0 +1,3 @@
+{"query": "Crea un file chiamato ciao.txt con dentro 'mondo'", "expected_keyword": "creato"}
+{"query": "Crea un file 'lista.txt' con 'latte, pane'. Poi leggi il file e dimmi cosa contiene.", "expected_keyword": "latte, pane"}
+{"query": "Quali sono i pericoli dell'intelligenza artificiale?", "expected_keyword": "bias algoritmici", "setup_files": [{"filename": "rischi_ai.txt", "content": "Uno dei maggiori pericoli dell'AI è il potenziale per bias algoritmici."}]}

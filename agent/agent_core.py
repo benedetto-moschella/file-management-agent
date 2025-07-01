@@ -84,7 +84,11 @@ class FileAgent:
             StructuredTool.from_function(
                 func=self.file_tools.answer_question_about_files,
                 name="answer_question_about_files",
-                description="Answer questions based on the content of files.",
+                description=(
+                    "Use this tool as the primary way to answer user questions. "
+                    "It performs a semantic search over the content of all files in the workspace "
+                    "to find the most relevant information for the given query."
+                ),
                 args_schema=AnswerAboutFilesInput
             ),
         ]
@@ -95,8 +99,10 @@ class FileAgent:
             'You are a precise text classifier. Your only function is to determine if a query '
             'is "ON-TOPIC" or "OFF-TOPIC".\n'
             '"ON-TOPIC" means the query is strictly about file management (list, read, '
-            'write, delete, ask about file content).\n'
-            'Any other query is "OFF-TOPIC".\n'
+            'write, delete) OR it is a question that can likely be answered using the '
+            'content of the files in the workspace.\n'
+            'Any other query, like a general knowledge question (e.g., "what is the capital '
+            'of France?"), is "OFF-TOPIC".\n'
             'You must respond with ONLY the word "ON-TOPIC" or "OFF-TOPIC".'
         )
         messages = [
@@ -113,16 +119,40 @@ class FileAgent:
 
     def plan(self, user_query: str) -> dict:
         """
-        Executes the agent's plan, including a pre-check for topic relevance.
+        Executes the agent's plan, using an optimized two-step verification.
         """
-        if not self._is_query_on_topic(user_query):
+        # --- LOGICA OTTIMIZZATA ---
+        if self._is_query_on_topic(user_query):
+            # Se il classificatore è sicuro, procediamo con l'AgentExecutor.
+            print("Classifier result: ON-TOPIC. Proceeding to main agent executor.")
+            inputs = {"input": user_query}
+            result = self.agent_executor.invoke(inputs)
+            return {"output": result["output"]}
+
+        # Se il classificatore dice OFF-TOPIC, eseguiamo il fallback RAG.
+        print("Classifier result: OFF-TOPIC. Performing fallback similarity search...")
+        search_context = self.file_tools.answer_question_about_files(query=user_query)
+
+        if "No relevant information found" in search_context:
+            # Se anche il RAG non trova nulla, la domanda è davvero off-topic.
+            print("Fallback search confirmed: No relevant documents. Declining.")
             refusal_message = (
                 "I am a file management assistant. I cannot answer off-topic "
                 "or general knowledge questions."
             )
             return {"output": refusal_message}
 
-        inputs = {"input": user_query}
-        result = self.agent_executor.invoke(inputs)
-        return {"output": result["output"]}
+        # Se il RAG ha trovato contesto, bypassiamo l'AgentExecutor e generiamo la risposta!
+        print("Fallback search found relevant context. Generating answer directly...")
+        final_prompt = (
+            "You are a helpful assistant. Please answer the user's question based "
+            "only on the following context provided.\n\n"
+            f"CONTEXT:\n{search_context}\n\n"
+            f"USER'S QUESTION: {user_query}"
+        )
+
+        # Invochiamo l'LLM principale solo per il compito di generazione finale.
+        final_response = self.llm.invoke(final_prompt)
+
+        return {"output": final_response.content}
     

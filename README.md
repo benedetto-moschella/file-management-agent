@@ -4,15 +4,15 @@ This project implements an advanced **tool-using AI agent**, built with **LangCh
 
 ## ✨ Key Features
 
--   **🤖 Tool-Using Agent**: The agent can perform **CRUD** (Create, Read, Update, Delete) operations on files and answer complex questions based on the content of multiple files within a sandboxed workspace.
+-   **🤖 Tool-Using Agent**: The agent can perform CRUD operations on files and perform semantic searches to answer complex questions based on file content within a sandboxed workspace.
+-   **🧠 RAG Pipeline**: The agent uses a **Retrieval-Augmented Generation (RAG)** pipeline to answer questions. Files are automatically chunked, vectorized using `Sentence-Transformers`, and indexed in a `FAISS` vector store for efficient and accurate semantic search.
 -   **🏗️ Modern Architecture**: Utilizes the modern LangChain stack with `AgentExecutor` and `create_openai_tools_agent`. Tools are robustly defined using `StructuredTool` and `Pydantic` schemas to ensure reliable argument handling.
 -   **🛡️ Safety Guardrail**: The agent implements a "guardrail" that pre-emptively analyzes user requests. It actively declines to answer irrelevant or off-topic questions and explains why.
 -   **⚡ 2-LLM Architecture**: To optimize for cost and latency, the agent uses a two-model architecture:
     -   A fast and lightweight model (**`gpt-3.5-turbo`**) for the initial classification of the query's topic.
     -   A powerful model (**`gpt-4o`**) for complex reasoning and tool use, engaged only when necessary.
--   **🖥️ CLI Interface**: An interactive command-line interface (`chat_interface/cli.py`) for easy testing and conversation with the agent.
--   **🌐 MCP Server**: A built-in MCP server (`server/mcp_server.py`) allows the agent to be used by compatible third-party clients like Cursor.
--   **✅ Comprehensive Test Suite**: The project includes a full `pytest` suite covering both the individual tools and the agent's core logic.
+-   **🐳 Production-Ready Deployment**: The project is fully containerized with **Docker**, allowing for easy and reproducible deployment.
+-   **✅ Comprehensive Test & Evaluation Suite**: The project includes a full `pytest` suite for unit testing and a dedicated script (`evaluate.py`) for performance evaluation.
 
 ## 📂 Project Structure
 
@@ -22,6 +22,8 @@ This project implements an advanced **tool-using AI agent**, built with **LangCh
 │   └── agent_core.py
 ├── chat_interface/
 │   └── cli.py
+├── rag/
+│   └── vector_store_manager.py
 ├── server/
 │   └── mcp_server.py
 ├── tests/
@@ -30,6 +32,13 @@ This project implements an advanced **tool-using AI agent**, built with **LangCh
 │   └── test_tools.py
 ├── tools/
 │   └── tools.py
+├── workspace/
+├── .dockerignore
+├── .env
+├── .gitignore
+├── Dockerfile
+├── evaluate.py
+├── evaluation_dataset.jsonl
 ├── mcp_config.json
 ├── requirements.txt
 └── README.md
@@ -83,6 +92,9 @@ python chat_interface/cli.py
 **Example Off-Topic Query:**
 > `What is the tallest mountain in the world?`
 
+**Example RAG Query:**
+> `First, create a file named 'ai_risks.txt' with the content "One of the main dangers of AI is algorithmic bias." Then ask: "What are the dangers related to artificial intelligence?"`
+
 ### 2. MCP Server
 To run the agent as a server for clients like Cursor:
 
@@ -91,9 +103,26 @@ uvicorn server.mcp_server:app --reload
 ```
 The server will be available at http://localhost:8000.
 
-### 3. Running Tests
+### 3. Running with Docker
+To build and run the project in a container (requires Docker Desktop to be running):
+
+```bash
+# 1. Build the Docker image
+docker build -t file-agent .
+
+# 2. Run the container
+docker run -p 8000:8000 -v ./workspace:/app/workspace --env-file .env file-agent
+```
+
+### 4. Running Tests & Evaluation
 To run the entire test suite:
 
 ```bash
 pytest
+```
+
+To evaluate the agent's performance on a predefined set of questions:
+
+```bash
+python evaluate.py
 ```
